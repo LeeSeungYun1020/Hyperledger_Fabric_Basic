@@ -114,6 +114,9 @@ peer chaincode query -C mychannel -n basic -c '{"Args":["GetAllAssets"]}'
 ```text
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"TransferAsset","Args":["asset6","Christopher"]}'
 ```
+asset-transfer 코드 보증 정책은 트랜잭션이 Org1과 Org2 모두에서 서명되어야 하므로 --peerAddresses 플래그를 사용하여 둘 다 대상으로 지정하였다.  
+넽으워크에 대한 TLS가 활성화되어 있기 때문에 --tlsRootCertFiles 태그를 이용하여 각 피어에 대한 TLS 인증서를 참조한다.  
+
 다시 GetAllAssets 함수를 호출하여 asset6의 소유자가 Michel에서 Christopher로 변경된 것을 확인할 수 있다.
 ```text
 [
@@ -125,3 +128,26 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
     {"AppraisedValue":800,"Color":"white","ID":"asset6","Owner":"Christopher","Size":15}
 ]
 ```
+Org2에서도 에셋 변경이 잘 적용되었는지 확인해보기 위해 환경 변수를 일부 수정한다.
+```text
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org2MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
+export CORE_PEER_ADDRESS=localhost:9051
+```
+ReadAsset 함수를 호출하여 Org2에서도 소유자가 크리스토퍼로 변경된 것을 확인할 수 있다.
+```text
+peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAsset","asset6"]}'
+```
+```text
+{"AppraisedValue":800,"Color":"white","ID":"asset6","Owner":"Christopher","Size":15}
+```
+
+### 네트워크 중단
+```text
+./network.sh down
+```
+노드와 체인코드 컨테이너를 중지, 제거하고 조직 암호화 자료를 삭제한다.
+Docker 레지스트리에서 체인코드 이미지도 제거된다.  
+채널 아티팩트와 도커 볼륨도 제거되므로 문제가 발생할 경우 이 명령을 수행하여 해결할 수 있다.
