@@ -151,3 +151,70 @@ peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAsset","asset6"]}'
 노드와 체인코드 컨테이너를 중지, 제거하고 조직 암호화 자료를 삭제한다.
 Docker 레지스트리에서 체인코드 이미지도 제거된다.  
 채널 아티팩트와 도커 볼륨도 제거되므로 문제가 발생할 경우 이 명령을 수행하여 해결할 수 있다.
+
+## 추가 자료
+
+### 인증 기관(CA)을 통한 네트워크 연결
+하이퍼레저 패브릭은 public key infrastructure를 사용하여 네트워크 참여자의 행동을 검증한다.  
+모든 노드와 네트워크 관리자, 트랜잭션을 제출할 사용자는 신원 확인을 위해 공개 인증서(public certificate)와 개인 키(private key)가 있어야 한다.  
+인증서가 네트워크의 멤버인 기관에서 발급되었음을 확인하는 유효한 신뢰 루트가 필요하다.  
+network.sh 스크립트는 피어와 오더링 노드를 만들기 전에 네트워크를 배포하고 운영하는데 필요한 모든 암호화 자료를 만든다.  
+
+기본적으로 스크립트는 crytogen 도구를 사용하여 인증서와 키를 만든다.  
+도구는 개발과 테스트를 위해 제공되며 유효한 신뢰 루트가 있는 패브릭 조직에 필요한 암호화 자료를 빠르게 생성할 수 있다.  
+./network.sh up을 실행하면 cryptogen 도구가 Org1, Org2, Orderer Org에 맞는 인증서와 키를 생성한다.  
+
+스크립트는 인증 기관을 이용하여 네트워크를 가져오는 옵션도 제공한다.  
+프로덕션 네트워크에서 각 조직은 조직에 속한 신원을 만드는 CA를 운영한다.  
+조직에서 운영하는 CA에서 생성한 모든 신원은 동일한 신뢰 루트를 공유한다.  
+cryptogen 도구를 사용하는 것보다 시간이 오래걸리지만 
+CA를 사용하여 테스트 네트워크를 불러오면 네트워크가 프로덕션 환경에서 배포되는 방법에 대한 소개를 얻을 수 있다.  
+
+```text
+./network.sh down
+./network.sh up -ca
+```
+
+테스트 네트워크는 패브릭 CA 클라이언트를 사용하여 각 조직의 CA에 노드 및 사용자 신원을 등록한다.  
+그런 다음 스크립트는 등록 명령을 사용하여 각 신원에 대한 MSP 폴더를 생성한다.  
+MSP 폴더에는 각 신원에 대한 인증서와 개인 키가 포함되어 있으며 CA를 운영하는 조직에서 신원의 역할과 멤버 자격을 설정한다.  
+아래 명령으로 Org1 admin 사용자의 MSP 폴더를 검사해보자.
+```text
+tree organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/
+```
+```text
+organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/
+└── msp
+    ├── IssuerPublicKey
+    ├── IssuerRevocationPublicKey
+    ├── cacerts
+    │   └── localhost-7054-ca-org1.pem
+    ├── config.yaml
+    ├── keystore
+    │   └── 3944f779ffd02730cce42d2d81d25d79847ac9365ad866b4e5f9a4bbb8430723_sk
+    ├── signcerts
+    │   └── cert.pem
+    └── user
+```
+admin 사용자의 인증서는 signcerts 폴더에 개인 키는 keystore 폴더에서 찾을 수 있다.  
+
+cryptogen과 패브릭 CA 모두 각 조직의 organizations 폴더에 암호화 자료를 생성한다.  
+organizations/fabric-ca 디렉토리의 registerEnroll.sh 스크립트에서 네트워크를 설정하는 명령을 발견할 수 있다.
+
+### 네트워크를 켤 때 일어나는 일
+
+./network.sh up 명령을 내리면 어떤 일이 일어날까?
+* ./network.sh는 피어 조직과 오더러 조직의 인증서와 키를 만든다.  
+기본값으로 cryptogen이 사용되며 -ca 옵션을 주면 패브릭 CA를 사용한다.
+* 조직의 암호화 자료가 생성되면 network.sh가 네트워크의 노드를 가져올 수 있다.  
+스크립트는 피어와 오더러 노드 생성을 위해 docker 폴더의 docker-compose-test-net.yaml 파일을 사용한다.  
+docker 폴더에는 docker-composer-e2e.yaml 파일도 있는데 이는 패브릭 CA로 네트워크 노드를 생성할 때 사용된다.
+* createChannel 서브명령을 사용하면 ./network.sh는 script 폴더에 있는 createChannel.sh 스크립트를 실행한다.  
+createChannel 스크립트는 기본 또는 인자로 제공된 이름의 채널을 만든다.  
+configtxgen 도구를 사용하여 채널의 제네시스 블록을 만드는데 
+configtx/configtx.yaml 파일에 정의된 TwoOrgsApplicationGenesis 채널 프로파일을 이용한다.
+* deployCC 명령어를 사용하면 ./network.sh는 deployCC.sh 스크립트를 실행하여 
+두 피어 모두에 asset-transfer 체인코드를 설치한 뒤 채널에 체인코드를 정의한다.  
+한 번 체인코드 정의가 채널에 커밋되면 피어 cli는 Init을 사용하여 체인코드를 초기화하고 
+원장에 초기 데이터를 넣기 위해서 체인코드가 호출된다.
+
