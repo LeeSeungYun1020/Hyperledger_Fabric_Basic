@@ -115,7 +115,7 @@ peer chaincode query -C mychannel -n basic -c '{"Args":["GetAllAssets"]}'
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"TransferAsset","Args":["asset6","Christopher"]}'
 ```
 asset-transfer 코드 보증 정책은 트랜잭션이 Org1과 Org2 모두에서 서명되어야 하므로 --peerAddresses 플래그를 사용하여 둘 다 대상으로 지정하였다.  
-넽으워크에 대한 TLS가 활성화되어 있기 때문에 --tlsRootCertFiles 태그를 이용하여 각 피어에 대한 TLS 인증서를 참조한다.  
+네트워크에 대한 TLS가 활성화되어 있기 때문에 --tlsRootCertFiles 태그를 이용하여 각 피어에 대한 TLS 인증서를 참조한다.  
 
 다시 GetAllAssets 함수를 호출하여 asset6의 소유자가 Michel에서 Christopher로 변경된 것을 확인할 수 있다.
 ```text
