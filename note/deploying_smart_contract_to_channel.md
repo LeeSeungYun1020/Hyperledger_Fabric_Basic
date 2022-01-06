@@ -9,7 +9,7 @@
 채널 원장의 에셋을 생성/수정하는 체인코드에 탑재된 스마트 컨트랙트를 사용할 수 있다.
 
 페브릭 체인코드 수명주기(lifecycle)의 과정을 거쳐 체인코드가 채널에 배포된다.
-패브릭 체인코드 수명주기를 통해 여러 조직에서 트랜색션을 생성하기 이전에 어떻게 체인코드가 동작할지(운영 방식에) 동의할 수 있다.
+패브릭 체인코드 수명주기를 통해 여러 조직에서 트랜잭션을 생성하기 이전에 어떻게 체인코드가 동작할지(운영 방식에) 동의할 수 있다.
 예를 들어 보증 정책이 트랜잭션을 검증하기 위해 체인코드를 실행해야 하는 조직을 지정하면
 채널 구성원은 패브릭 체인코드 수명주기를 사용하여 체인코드 보증 정책에 동의해야 한다.
 
@@ -106,7 +106,7 @@ peer lifecycle chaincode package basic.tar.gz --path ../asset-transfer-basic/cha
 ## 체인코드 패키지 설치
 
 asset-transfer 스마트 컨트랙트를 패키징한 뒤에는 피어에 체인코드를 설치할 수 있다.
-체인코드는 트랜색션을 보증할 모든 피어에 설치해야한다.  
+체인코드는 트랜잭션을 보증할 모든 피어에 설치해야한다.  
 Org1과 Org2 모두에서 보증을 요구하도록 보증 정책을 설정하려한다.
 이를 위해 두 조직에서 운영하는 피어에 체인코드를 설치해야한다.
 
@@ -175,9 +175,9 @@ approveformyorg 명령에는 체인코드 보증 정책을 명시하기 위해
 --signature-policy나 --channel-config-policy 인자를 전달할 수 있다.
 보증 정책은 서로 다른 채널 멤버에 속한 피어가 주어진 체인코드에 대해 트랜잭션을 검증해야 하는 수를 지정한다.
 여기서는 정책을 지정하지 않았으므로, asset-transfer는 기본 보증 정책을 사용한다.
-기본 보증 정책은 앞서 살펴보았듯 과반수가 넘는 채널 멤버가 트랜색션을 보증해야 한다.
+기본 보증 정책은 앞서 살펴보았듯 과반수가 넘는 채널 멤버가 트랜잭션을 보증해야 한다.
 채널에 새로운 조직이 추가되거나 삭제되면 보증 정책이 자동으로 업데이트되어 필요한 보증 수가 조정된다.
-여기에서는 2개의 조직이 존재하므로 과반수는 2이다. 따라서 트랜색션은 Org1과 Org2의 피어 모두에서 보증되어야 한다.
+여기에서는 2개의 조직이 존재하므로 과반수는 2이다. 따라서 트랜잭션은 Org1과 Org2의 피어 모두에서 보증되어야 한다.
 
 체인코드 정의는 admin 권한을 가지고 있는 신원으로 승인해야 한다.
 결과적으로 admin 신원이 저장된 MSP 폴더 경로를 가리키는 CORE_PEER_MSPCONFIGPATH 변수가 필요하다.
@@ -195,13 +195,13 @@ peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameO
 
 이제 과반수가 asset-transfer 체인코드를 채널에 배포하는 것을 승인하였다.
 과반수의 조직만 체인코드 정의를 승인하면 되지만 피어에서 체인코드를 시작하려면 해당 조직은 체인코드 정의를 승인해야 한다.
-채널의 멤버가 체인코드를 승인하기 전에 정의를 커밋하면 조직은 트랜색션을 보증할 수 없다.
+채널의 멤버가 체인코드를 승인하기 전에 정의를 커밋하면 조직은 트랜잭션을 보증할 수 없다.
 결과적으로 모든 채널의 멤버가 체인코드 정의를 커밋하기 전에 체인코드를 승인하는 것이 권장된다.
 
 ## 채널에 체인코드 정의 커밋하기
 
 충분한 수의 조직이 체인코드 정의를 승인하면, 한 조직이 채널에 체인코드 정의를 커밋할 수 있다.
-과반이 넘는 채널의 멤버가 정의를 승인하면 커밋 트랜색션은 성공하며
+과반이 넘는 채널의 멤버가 정의를 승인하면 커밋 트랜잭션은 성공하며
 체인코드 정의에서 동의한 매개변수가 채널에서 구현된다.
 
 peer lifecycle chaincode checkcommitreadiness 명령으로 채널의 멤버가 체인코드 정의를 승인하였는지 확인할 수 있다.
@@ -226,7 +226,7 @@ peer lifecycle chaincode commit 명령을 통해 채널에 체인코드 정의�
 peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name basic --version 1.0 --sequence 1 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
 ```
 --peerAddressed 플래그는 Org1의 peer0.org1.example.com과 Org2의 peer0.org2.example.com를 대상으로 지정한다.  
-commit 트랜색션은 피어를 운영하는 조직에서 승인한 체인코드 정의를 쿼리하기 위해 채널에 가입한 피어에게 제출된다.
+commit 트랜잭션은 피어를 운영하는 조직에서 승인한 체인코드 정의를 쿼리하기 위해 채널에 가입한 피어에게 제출된다.
 명령은 체인코드 보증 정책을 충족하기 위한 충분한 수의 조직의 피어를 대상으로 해야 한다.
 승인은 각 조직 내에서 배포되므로 채널 멤버에 속한 모든 피어를 대상으로 지정할 수 있다.
 
@@ -371,7 +371,7 @@ peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name basic
 peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name basic --version 2.0 --sequence 2 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
 ```
 
-커밋 트랜색션이 성공하면 바로 새 체인코드를 시작한다.
+커밋 트랜잭션이 성공하면 바로 새 체인코드를 시작한다.
 체인코드 정의가 보증 정책을 변경하면 새 정책이 시행된다.  
 docker ps 명령을 통해 피어에서 새 체인코드가 시작하는지 확인할 수 있다.
 
