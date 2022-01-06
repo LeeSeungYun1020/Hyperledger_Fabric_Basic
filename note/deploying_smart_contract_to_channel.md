@@ -43,7 +43,7 @@ find . -name monitordocker.sh
 ./monitordocker.sh fabric_test
 ```
 
-##스마트 컨트랙트 패키징
+## 스마트 컨트랙트 패키징
 
 피어에 설치하기 전에 체인코드 패키징이 필요하다.
 
@@ -103,7 +103,7 @@ export FABRIC_CFG_PATH=$PWD/../config/
 peer lifecycle chaincode package basic.tar.gz --path ../asset-transfer-basic/chaincode-javascript/ --lang node --label basic_1.0
 ```
 
-##체인코드 패키지 설치
+## 체인코드 패키지 설치
 
 asset-transfer 스마트 컨트랙트를 패키징한 뒤에는 피어에 체인코드를 설치할 수 있다.
 체인코드는 트랜색션을 보증할 모든 피어에 설치해야한다.  
@@ -128,7 +128,7 @@ export CORE_PEER_ADDRESS=localhost:9051
 peer lifecycle chaincode install basic.tar.gz
 ```
 
-##체인코드 정의 승인
+## 체인코드 정의 승인
 
 체인코드 패키지를 설치한 뒤, 조직에 체인코드 정의를 승인해야 한다.
 정의에는 이름, 버젼, 체인코드 보증 정책 같이 체인코드 거버넌스의 중요한 매개변수를 포함한다.
@@ -163,7 +163,7 @@ peer lifecycle chaincode approveformyorg 명령을 통해 체인코드 정의를
 peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
 ```
 --package-id 플래그는 체인코드 정의에 패키지 식별자를 넣는다.  
---sequence 파라미터는 체인코드가 정의/업데이트된 횟수를 나타내는 정수이다.
+--sequence 파라미터는 체인코드가 정의/업데이트된 횟수(시퀀스)를 나타내는 정수이다.
 여기에서는 체인코드가 처음 배포되므로 횟수는 1이다.
 체인코드가 업그레이드되면 2로 횟수가 증가될 것이다.  
 저수준 API인 체인코드 Shim API를 사용한다면 --init-required 플래그를 통해
@@ -238,7 +238,7 @@ peer lifecycle chaincode querycommitted 명령으로 체인코드 정의가 채�
 ```text
 peer lifecycle chaincode querycommitted --channelID mychannel --name basic --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
 ```
-체인코드가 채널에 성공적으로 커밋되었다면 아래처럼 체인코드 정의의 횟수와 버젼이 표시된다. 
+체인코드가 채널에 성공적으로 커밋되었다면 아래처럼 체인코드 정의의 횟수(시퀀스)와 버젼이 표시된다. 
 ```text
 Committed chaincode definition for chaincode 'basic' on channel 'mychannel':
 Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [Org1MSP: true, Org2MSP: true]
@@ -258,3 +258,154 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 ```text
 peer chaincode query -C mychannel -n basic -c '{"Args":["GetAllAssets"]}'
 ```
+
+## 스마트 컨트렉트 업그레이드
+
+동일한 패브릭 체인코드 수명주기를 이용하여 채널에 배포된 체인코드를 업그레이드할 수 있다.
+채널 멤버는 새로운 체이코드 패키지를 설치한 다음
+새로운 패키지 ID, 버젼, 횟수(시퀀스)를 가진 체인코드 정의를 승인하여 체인코드를 업그레이드할 수 있다.
+새 체인코드는 체인코드 정의가 채널에 커밋된 이후에 사용할 수 있다.
+이 과정을 통해 채널 멤버가 체인코드가 업그레이드될 때 조정하고
+채널에 배포하기 전 충분한 수의 채널 멤버가 새 체인코드를 사용할 준비가 되었는지 확인할 수 있다.
+
+채널 멤버는 체인코드 보증 정책을 수정하기 위해서도 이 업그레이드 과정을 거칠 수 있다.
+새 보증 정책으로 체인코드를 정의를 승인하고 채널에 체인코드 정의를 커밋하면
+채널의 멤버는 새 체인코드 패키지 설치없이 체인코드를 관리하는 보증 정책을 수정할 수 있다.
+
+방금 배포한 asset-transfer 체인코드를 업그레이드하는 시나리오를 생각해보자.
+Org1과 Org2가 다른 언어에서 작성된 버젼의 체인코드를 설치한다고 가정해보자.
+패브릭 체인코드 수명주기를 사용하여 체인코드 버전을 업데이트하고 
+채널에서 활성화되기 전에 두 조직이 새 체인코들르 설치하였는지 확인한다.
+
+Org1과 Org2 Go 버젼의 asset-transfer 체인코드가 설치된 경우를 생각해보자.
+그런데 JavaScript로 더 편리하게 작동하는 체인코드를 작성하였다.
+이런 경우 JavaScript로 작성한 체인코드를 패키징하고 위에서 설명한 단계에 따라
+새 체인코드 바이너리를 설치하면 된다.
+
+아래 명령을 설치하여 체인코드 디펜던시를 설치할 수 있다.
+(test-network 디렉토리에서 실행해야 한다.)
+```text
+cd ../asset-transfer-basic/chaincode-javascript
+npm install
+cd ../../test-network
+```
+
+이제 다음 명령으로 JavaScript 체인코드를 패키징할 수 있다.
+먼저 피어 CLI에서 사용할 환경 변수를 설정해야 한다.
+```text
+export PATH=${PWD}/../bin:$PATH
+export FABRIC_CFG_PATH=$PWD/../config/
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+peer lifecycle chaincode package basic_2.tar.gz --path ../asset-transfer-basic/chaincode-javascript/ --lang node --label basic_2.0
+```
+Org1 admin 권한으로 peer CLI를 실행하기 위해 변수를 지정한다.
+```text
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051
+```
+새로운 체인코드 패키지를 Org1 피어에 설치할 수 있다.
+```text
+peer lifecycle chaincode install basic_2.tar.gz
+```
+새 체인코드 패키지는 새 패키지 ID를 생성한다. 새 패키지 ID는 피어를 쿼리하여 찾을 수 있다.
+```text
+peer lifecycle chaincode queryinstalled
+```
+```text
+Installed chaincodes on peer:
+Package ID: basic_1.0:dee2d612e15f5059478b9048fa4b3c9f792096554841d642b9b59099fa0e04a4, Label: basic_1.0
+Package ID: basic_2.0:7d6effc659016d08574c8aaf9365fbc5b157eec2f501c6d21fa0798d9ca154d6, Label: basic_2.0
+```
+패키지 라벨을 이용하여 적합한 패키지 ID를 찾을 수 있다. 패키지 ID를 환경 변수에 추가한다.
+```text
+export NEW_CC_PACKAGE_ID=basic_2.0:7d6effc659016d08574c8aaf9365fbc5b157eec2f501c6d21fa0798d9ca154d6
+```
+Org1은 새 체인코드 정의를 승인할 수 있다.
+```text
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name basic --version 2.0 --package-id $NEW_CC_PACKAGE_ID --sequence 2 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+```
+
+새 체인코드 정의는 JavaScript 체인코드 패키지의 패키지 ID를 사용하며 체인코드 버젼을 업데이트한다.
+횟수 파라미터는 패브릭 체인코드 수명주기에서 체인코드 업그레이드를 추적하는데 사용되기 때문에
+Org1도 횟수를 1에서 2로 증가시켜야 한다.
+peer lifecycle chaincode querycommitted 명령을 사용하여
+채널에 마지막으로 커밋된 체인토드 횟수(시퀀스)를 찾을 수 있다.
+
+이제 체인코드를 업그레이드하기 위해 체인코드 패키지를 설치하고 체인코드 정의를 Org2로 승인해야 한다.
+피어 CLI를 Org2 admin 권한으로 실행하기 위해 변수를 변경한다.
+```text
+export CORE_PEER_LOCALMSPID="Org2MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
+export CORE_PEER_ADDRESS=localhost:9051
+```
+Org2 피어에 새 체인코드 패키지를 설치한다.
+```text
+peer lifecycle chaincode install basic_2.tar.gz
+```
+Org2에서 새 체인코드 정의를 승인한다.
+```text
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name basic --version 2.0 --package-id $NEW_CC_PACKAGE_ID --sequence 2 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+```
+
+peer lifecycle chaincode checkcommitreadiness 명령을 사용하여 횟수(시퀀스)가 2인 체인코드 정의가
+채널에 커밋할 준비가 되었는지 확인한다.
+```text
+peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name basic --version 2.0 --sequence 2 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --output json
+```
+```text
+{
+        "approvals": {
+                "Org1MSP": true,
+                "Org2MSP": true
+        }
+}
+```
+새 체인코드 정의가 커밋되면 채널에서 체인코드가 업그레이드 된다.
+그 전까지는 Org1, Org2의 피어에서는 이전 체인코드가 계속 실행된다.
+```text
+peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name basic --version 2.0 --sequence 2 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+```
+
+커밋 트랜색션이 성공하면 바로 새 체인코드를 시작한다.
+체인코드 정의가 보증 정책을 변경하면 새 정책이 시행된다.  
+docker ps 명령을 통해 피어에서 새 체인코드가 시작하는지 확인할 수 있다.
+
+--init-required 플래그를 사용한 경우 업그레이드된 체인코드를 사용하기 전에 Init 함수를 호출해야 한다.
+우리는 해당 플래그를 사용하지 않았으므로 Init 함수 호출 없이 새 자동차를 만들어 JavaScript 체인코드를 테스트 해본다.
+```text
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"CreateAsset","Args":["asset8","blue","16","Kelley","750"]}'
+```
+원장에서 모든 자동차를 쿼리해보자.
+```text
+peer chaincode query -C mychannel -n basic -c '{"Args":["GetAllAssets"]}'
+```
+```text
+[
+    {"AppraisedValue":300,"Color":"blue","ID":"asset1","Owner":"Tomoko","Size":5},
+    {"AppraisedValue":400,"Color":"red","ID":"asset2","Owner":"Brad","Size":5},
+    {"AppraisedValue":500,"Color":"green","ID":"asset3","Owner":"Jin Soo","Size":10},
+    {"AppraisedValue":600,"Color":"yellow","ID":"asset4","Owner":"Max","Size":10},
+    {"AppraisedValue":700,"Color":"black","ID":"asset5","Owner":"Adriana","Size":15},
+    {"AppraisedValue":800,"Color":"white","ID":"asset6","Owner":"Michel","Size":15},
+    {"AppraisedValue":"750","Color":"blue","ID":"asset8","Owner":"Kelley","Size":"16"}
+]
+```
+추가한 asset8을 확인할 수 있다.
+
+## 정리하기
+
+체인코드 사용이 끝나면 아래 명령으로 Logspout 도구를 종료할 수 있다.
+```text
+docker stop logspout
+docker rm logspout
+```
+테스트 네트워크는 test-network 디렉토리에서 다음 명령을 입력하여 종료한다.
+```text
+./network.sh down
+```
+
