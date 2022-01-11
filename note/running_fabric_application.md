@@ -73,7 +73,7 @@ package.json에 정의된 어플리케이션 디펜던시를 설치한다.
 사용되는 패브릭 게이트웨이 어플리케이션 API를 제공한다.
 
 src 디렉토리에 클라이언트 어플리케이션 소스 코드가 있다.
-설치 괒정에서 생성된 JavaScript 출력은 dist 디렉토리에 있다.
+설치 과정에서 생성된 JavaScript 출력은 dist 디렉토리에 있다.
 
 ## 샘플 어플리케이션 실행
 
@@ -155,7 +155,7 @@ async function newSigner(): Promise<Signer> {
 
 ### 3. 호출할 스마트 컨트랙트에 접근(access)
 샘플 어플리케이션은 Gateway 연결을 사용하여 Network에 대한 참조를 가져오고
-해당 네트워크에 배포된 체인코드 내의 기본 Contract를 가젼온다.
+해당 네트워크에 배포된 체인코드 내의 기본 Contract를 가져온다.
 ```typescript
 const channelName = 'mychannel';
 const chaincodeName = 'basic';
@@ -263,7 +263,7 @@ console.log('*** Result:', result);
 트랜잭션 함수에서 에러 응답을 반환하고 submitTransaction() 함수 호출에 실패한다.
 
 submitTransaction() 함수의 실패는 제출 흐름 상에서 오류가 발생한 곳을 표시하고
-어플리케이션이 적절하게 응합할 수 있도록 하는 추가 정보를 포함한 여러 유형의 오류를 생성할 수 있다.
+어플리케이션이 적절하게 응답할 수 있도록 하는 추가 정보를 포함한 여러 유형의 오류를 생성할 수 있다.
 발생할 수 있는 에러 타입은 API 문서를 참고해야 한다.
 ```typescript
 try {
