@@ -612,13 +612,45 @@ Isabella처럼 Balaji도 여러 개의 ID 정보를 저장할 수 있다. (이�
 
 ## Buy(구매) 어플리케이션
 
+Balaji는 이제 `buy.js`로 트랜잭션을 전송하여 MagnetoCorp의 기업 어음 00001을 DigiBank로 소유권을 이전할 수 있다.
+
+Balaji 창에서 `buy` 어플리케이션을 실행해보자.
+```text
+(balaji)
+node buy.js
+```
+프로그램 결과 출력을 통해 MagnetoCorp 기업 어음 00001이 성공적으로 구매된 것을 확인할 수 있다.
+`buy.js`는 `CommercialPaper` 스마트 컨트랙트에 정의되어 있는 `buy` 트랜잭션을 호출한다.
+`CommercialPape` 스마트 컨트랙트는 `putState()`와 `getState()` 패브릭 API를 사용하여 world state 내의 기업 업음 00001을 업데이트 한다.
+살펴본 바와 같이 기업 어음 구매와 발행 어플리케이션 로직은 스마트 컨트랙트 로직과 매우 유사하다.
 
 
 ## Redeem(상환) 어플리케이션
 
+기업 어음 00001의 수명 주기에서 최종 트랜잭션은 DigiBank가 MagnetoCorp로 이를 상환하는 것이다.
+Balaji는 `redeem.js`를 사용하여 스마트 컨트랙트 내에서 상환 로직을 수행하기 위해 트랜잭션을 제출한다.
+
+```text
+(balaji)
+node redeem.js
+```
+
+`redeem.js`가 `CommercialPaper`에 정의된 `redeem` 트랜잭션을 호출하여 기업 어음 00001을 성공적으로 상환하였음을 확인할 수 있다.
+소유권이 어음 발행자인 MagnetoCorp에 반환되었음을 반영하기 위해 world state 내 기업 어음 00001을 업데이트 한다.
 
 ## 정리하기
 
+기업 어음 튜토리얼이 완료되었다. 스크립트를 사용하여 환경을 정리할 수 있다.
+기업 어음 예제 디렉토리로 이동하여 스크립트를 실행하자.
+```text
+cd fabric-samples/commercial-paper
+./network-clean.sh
+```
+
+이 명령은 네트워크의 피어와 couch DB 컨테이너, 오더링 노드, logspout 도구를 중단한다.
+Isabella와 Balaji에 대해 생성한 ID도 제거된다.
+원장의 데이터 또한 모두 삭제됨을 주의해야 한다.
+튜토리얼을 다시 진행하려면 위 명령으로 깨끗하게 초기화한 상태에서 진행해야 한다.
 
 ## 참고 자료
 [1] Hyperledger, 12 06 2021. [온라인]. Available: https://hyperledger-fabric.readthedocs.io/en/latest/tutorial/commercial_paper.html. [액세스: 10 01 2022]. 
