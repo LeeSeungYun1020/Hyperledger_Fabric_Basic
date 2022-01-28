@@ -11,3 +11,4 @@
 3. [채널에 스마트 컨트랙트 배포](./note/deploying_smart_contract_to_channel.md)
 4. [패브릭 어플리케이션 실행](./note/running_fabric_application.md)
 5. [기업 어음 튜토리얼](./note/commercial_paper_tutorial.md)
+6. [패브릭에서 개인 데이터 사용](./note/using_private_data_in_fabric.md)
